@@ -6,34 +6,40 @@
 #include <esp_lcd_panel_io.h>
 #include <esp_lcd_panel_vendor.h>
 #include <esp_lcd_panel_ops.h>
+#include <esp32_smartdisplay_dma_helpers.h>
 
 bool nv3041a_color_trans_done(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_io_event_data_t *edata, void *user_ctx)
 {
-    lv_disp_drv_t *disp_driver = user_ctx;
-    lv_disp_flush_ready(disp_driver);
+    /* lv_disp_drv_t *disp_driver = user_ctx; */
+    /* lv_disp_flush_ready(disp_driver); */
     return false;
 }
 
-void nv3041a_lv_flush(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
+void nv3041a_lv_flush(lv_display_t *display, const lv_area_t *area, uint8_t *px_map)
 {
-    esp_lcd_panel_handle_t panel_handle = drv->user_data;
-#if LV_COLOR_16_SWAP != 1
-#warning "LV_COLOR_16_SWAP should be 1 for max performance"
-    ushort pixels = lv_area_get_size(area);
-    lv_color16_t *p = color_map;
-    while (pixels--)
-        p++->full = (uint16_t)((p->full >> 8) | (p->full << 8));
-#endif
-    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, area->x1, area->y1, area->x2 + 1, area->y2 + 1, color_map));
+/*     esp_lcd_panel_handle_t panel_handle = drv->user_data; */
+/* #if LV_COLOR_16_SWAP != 1 */
+/* #warning "LV_COLOR_16_SWAP should be 1 for max performance" */
+/*     ushort pixels = lv_area_get_size(area); */
+/*     lv_color16_t *p = color_map; */
+/*     while (pixels--) */
+/*         p++->full = (uint16_t)((p->full >> 8) | (p->full << 8)); */
+/* #endif */
+/*     ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, area->x1, area->y1, area->x2 + 1, area->y2 + 1, color_map)); */
+
+    // Hardware rotation is supported - use optimized helper function
+    esp_lcd_panel_handle_t panel_handle = display->user_data;
+    smartdisplay_dma_flush_with_byteswap(display, area, px_map, panel_handle, "NV3041A");
 };
 
-void lvgl_lcd_init(lv_disp_drv_t *drv)
+void lvgl_lcd_init()
 {
-    log_v("drv:0x%08x", drv);
+    lv_display_t *display = lv_display_create(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+    log_v("display:0x%08x", display);
 
     // Hardware rotation is supported
-    drv->sw_rotate = 0;
-    drv->rotated = LV_DISP_ROT_NONE;
+    /* drv->sw_rotate = 0; */
+    /* drv->rotated = LV_DISP_ROT_NONE; */
 
     // Create SPI bus
     const spi_bus_config_t spi_bus_config = {
@@ -55,7 +61,7 @@ void lvgl_lcd_init(lv_disp_drv_t *drv)
         .spi_mode = NV3041A_SPI_CONFIG_SPI_MODE,
         .pclk_hz = NV3041A_SPI_CONFIG_PCLK_HZ,
         .on_color_trans_done = nv3041a_color_trans_done,
-        .user_ctx = drv,
+        .user_ctx = display,
         .trans_queue_depth = NV3041A_SPI_CONFIG_TRANS_QUEUE_DEPTH,
         .lcd_cmd_bits = NV3041A_SPI_CONFIG_LCD_CMD_BITS,
         .lcd_param_bits = NV3041A_SPI_CONFIG_LCD_PARAM_BITS,
@@ -81,6 +87,10 @@ void lvgl_lcd_init(lv_disp_drv_t *drv)
     ESP_ERROR_CHECK(esp_lcd_new_panel_nv3041a(io_handle, &panel_dev_config, &panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
     ESP_ERROR_CHECK(esp_lcd_panel_init(panel_handle));
+
+    // Initialize DMA for optimized transfers
+    smartdisplay_dma_init_with_logging(panel_handle, "NV3041A");
+
 #ifdef DISPLAY_IPS
     // If LCD is IPS invert the colors
     ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, true));
@@ -97,8 +107,8 @@ void lvgl_lcd_init(lv_disp_drv_t *drv)
     // Turn display on
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(panel_handle, true));
 
-    drv->user_data = panel_handle;
-    drv->flush_cb = nv3041a_lv_flush;
+    display->user_data = panel_handle;
+    display->flush_cb = nv3041a_lv_flush;
 }
 
 #endif
