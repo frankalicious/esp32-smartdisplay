@@ -41,6 +41,11 @@ lv_display_t *lvgl_lcd_init()
     /* drv->sw_rotate = 0; */
     /* drv->rotated = LV_DISP_ROT_NONE; */
 
+    //  Create drawBuffer
+    uint32_t drawBufferSize = sizeof(lv_color_t) * LVGL_BUFFER_PIXELS;
+    void *drawBuffer = heap_caps_malloc(drawBufferSize, LVGL_BUFFER_MALLOC_FLAGS);
+    lv_display_set_buffers(display, drawBuffer, NULL, drawBufferSize, LV_DISPLAY_RENDER_MODE_PARTIAL);
+
     // Create SPI bus
     const spi_bus_config_t spi_bus_config = {
         .mosi_io_num = NV3041A_SPI_BUS_MOSI_IO_NUM,
