@@ -102,9 +102,9 @@ lv_display_t *lvgl_lcd_init()
 #if (DISPLAY_SWAP_XY)
     ESP_ERROR_CHECK(esp_lcd_panel_swap_xy(panel_handle, DISPLAY_SWAP_XY));
 #endif
-#if (DISPLAY_MIRROR_X || DISPLAY_MIRROR_Y)    
+#if (DISPLAY_MIRROR_X || DISPLAY_MIRROR_Y)
     ESP_ERROR_CHECK(esp_lcd_panel_mirror(panel_handle, DISPLAY_MIRROR_X, DISPLAY_MIRROR_Y));
-#endif    
+#endif
 #if (DISPLAY_GAP_X || DISPLAY_GAP_Y)
     ESP_ERROR_CHECK(esp_lcd_panel_set_gap(panel_handle, DISPLAY_GAP_X, DISPLAY_GAP_Y));
 #endif
