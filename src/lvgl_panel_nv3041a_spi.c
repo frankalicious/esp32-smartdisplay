@@ -29,7 +29,8 @@ void nv3041a_lv_flush(lv_display_t *display, const lv_area_t *area, uint8_t *px_
 
     // Hardware rotation is supported - use optimized helper function
     esp_lcd_panel_handle_t panel_handle = display->user_data;
-    smartdisplay_dma_flush_with_byteswap(display, area, px_map, panel_handle, "NV3041A");
+    /* smartdisplay_dma_flush_with_byteswap(display, area, px_map, panel_handle, "NV3041A"); */
+    smartdisplay_dma_flush_with_rotation(display, area, px_map, panel_handle, "NV3041A");
 };
 
 lv_display_t *lvgl_lcd_init()
