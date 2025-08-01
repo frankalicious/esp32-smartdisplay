@@ -17,15 +17,15 @@ bool nv3041a_color_trans_done(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_
 
 void nv3041a_lv_flush(lv_display_t *display, const lv_area_t *area, uint8_t *px_map)
 {
-/*     esp_lcd_panel_handle_t panel_handle = drv->user_data; */
+/*     esp_lcd_panel_handle_t panel_handle = display->user_data; */
 /* #if LV_COLOR_16_SWAP != 1 */
 /* #warning "LV_COLOR_16_SWAP should be 1 for max performance" */
 /*     ushort pixels = lv_area_get_size(area); */
-/*     lv_color16_t *p = color_map; */
+/*     lv_color16_t *p = px_map; */
 /*     while (pixels--) */
 /*         p++->full = (uint16_t)((p->full >> 8) | (p->full << 8)); */
 /* #endif */
-/*     ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, area->x1, area->y1, area->x2 + 1, area->y2 + 1, color_map)); */
+/*     ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(panel_handle, area->x1, area->y1, area->x2 + 1, area->y2 + 1, px_map)); */
 
     // Hardware rotation is supported - use optimized helper function
     esp_lcd_panel_handle_t panel_handle = display->user_data;
