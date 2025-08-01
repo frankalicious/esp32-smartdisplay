@@ -32,7 +32,7 @@ void nv3041a_lv_flush(lv_display_t *display, const lv_area_t *area, uint8_t *px_
     smartdisplay_dma_flush_with_byteswap(display, area, px_map, panel_handle, "NV3041A");
 };
 
-void lvgl_lcd_init()
+lv_display_t *lvgl_lcd_init()
 {
     lv_display_t *display = lv_display_create(DISPLAY_WIDTH, DISPLAY_HEIGHT);
     log_v("display:0x%08x", display);
@@ -109,6 +109,8 @@ void lvgl_lcd_init()
 
     display->user_data = panel_handle;
     display->flush_cb = nv3041a_lv_flush;
+
+    return display;
 }
 
 #endif
